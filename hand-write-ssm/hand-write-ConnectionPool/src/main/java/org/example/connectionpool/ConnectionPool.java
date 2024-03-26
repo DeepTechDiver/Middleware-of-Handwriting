@@ -86,7 +86,7 @@ public class ConnectionPool implements IConnectionPool {
                     //添加到正在使用的连接集合
                     usePools.add(conn);
                 }
-                System.out.println("从空闲连接池中获取连接对象:"+conn+"，当前空闲连接池数量:"+freePools.size()+"，当前正在使用的连接池数量:"+usePools.size());
+                System.out.println(Thread.currentThread().getName()+"从空闲连接池中获取连接对象:"+conn+"，当前空闲连接池数量:"+freePools.size()+"，当前正在使用的连接池数量:"+usePools.size());
             }else {
                 //判断连接池是否已满，如果没有则创建连接，如果已满则等待
                 if (connCount.get() < Integer.valueOf(dataSourceConfig.getMaxSize())){
@@ -94,7 +94,7 @@ public class ConnectionPool implements IConnectionPool {
                     conn = createConn();
                     //添加到正在使用的连接集合
                     usePools.add(conn);
-                    System.out.println("连接池没空闲连接，新建连接:"+conn+"，当前空闲连接池数量:"+freePools.size()+"，当前正在使用的连接池数量:"+usePools.size());
+                    System.out.println(Thread.currentThread().getName()+"连接池没空闲连接，新建连接:"+conn+"，当前空闲连接池数量:"+freePools.size()+"，当前正在使用的连接池数量:"+usePools.size());
                 }else {
                     //等待
                     this.wait(Integer.valueOf(dataSourceConfig.getWaittime()));
@@ -116,7 +116,7 @@ public class ConnectionPool implements IConnectionPool {
      */
     private boolean isAvailable(Connection conn) {
         try {
-            if (conn != null && conn.isClosed()){
+            if (conn != null && !conn.isClosed()){
                 return true;
             }
         } catch (SQLException e) {
@@ -125,8 +125,22 @@ public class ConnectionPool implements IConnectionPool {
         return false;
     }
 
+    /**
+     * 释放连接
+     * @param conn
+     */
     @Override
-    public void releaseConn(Connection conn) {
-
+    public synchronized void releaseConn(Connection conn) {
+        if (isAvailable(conn)){
+            freePools.add(conn);
+//            for (int i = 0; i < usePools.size(); i++){
+//                if (usePools.get(i).equals(conn)){
+//                    usePools.remove(i);
+//                }
+//            }
+            usePools.remove(conn);
+            System.out.println(Thread.currentThread().getName()+"归还连接对象:"+conn+"，当前空闲连接池数量:"+freePools.size()+"，当前正在使用的连接池数量:"+usePools.size());
+        }
+        this.notify();
     }
 }
