@@ -1,9 +1,11 @@
 package org.example.connectionpool;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Properties;
 import java.util.Set;
+import java.lang.reflect.Field;
 
 /**
  * 读取数据库配置文件，封装一个配置类
@@ -20,7 +22,7 @@ public class DataSourceConfig {
     private String delay = "2000";
     private String period = "2000";
     private String timeout = "100000";
-
+    private String waittime = "1000";
 
     /**
      * 当一个对象被初始化时，可能会经历以下步骤：
@@ -59,15 +61,20 @@ public class DataSourceConfig {
     private DataSourceConfig() {
         try {
             Properties properties = new Properties();
-            properties.load(DataSourceConfig.class.getResourceAsStream("db.properties"));
+            properties.load(DataSourceConfig.class.getClassLoader().getResourceAsStream("db.properties"));
+            // 实现了从 Properties 对象中获取所有键的集合
+            // Properties 类继承自 Hashtable，因此它具有 keySet() 方法，该方法返回一个包含了所有键的集合，其类型为 Set<Object>
             Set<Object> keySet = properties.keySet();
             for (Object key : keySet) {
 
                 String fieldName = key.toString().split("\\.")[1];
                 String fieldValue = properties.getProperty(key.toString());
-                System.out.println(key + ":" + properties.get(key));
+                //System.out.println(key + ":" + properties.get(key));
                 //通过反射的方式给对象赋值
+                setField(fieldName, fieldValue);
 
+                //方法二
+                //setField2(fieldName, fieldValue);
             }
 
         } catch (IOException e) {
@@ -75,6 +82,135 @@ public class DataSourceConfig {
         }
     }
 
+    /**
+     * 设置类中的私有字段的值
+     * @param fieldName 字段（即属性）
+     * @param fieldValue 指定的值
+     */
+    private void setField(String fieldName, String fieldValue) {
+        try {
+            Field field = DataSourceConfig.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(this, fieldValue);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException("Error setting field " + fieldName, e);
+        }
+    }
 
 
+    /**
+     *  方法二 反射获取Setxxx方法，并反射调用方法赋值
+     * @param fieldName
+     * @param fieldValue
+     */
+    private void setField2(String fieldName, String fieldValue) {
+        try {
+            Field field = DataSourceConfig.class.getDeclaredField(fieldName);
+            Method method = DataSourceConfig.class.getDeclaredMethod(toUpper(fieldName), field.getType());
+            //反射调用方法赋值
+            method.invoke(this, fieldValue);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 读取配置文件中的key,并把他转成正确的set方法
+     * @param fieldName 配置文件中的key
+     * @return setXXX方法 例如生成了setDriver()方法
+     */
+    public String toUpper(String fieldName) {
+        char[] chars = fieldName.toCharArray();
+        chars[0] -= 32;     // 如何把一个字符串的首字母变成大写
+        return "set" + new String(chars);
+    }
+
+
+    public String getDriver() {
+        return driver;
+    }
+
+    public void setDriver(String driver) {
+        this.driver = driver;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getInitSize() {
+        return initSize;
+    }
+
+    public void setInitSize(String initSize) {
+        this.initSize = initSize;
+    }
+
+    public String getMaxSize() {
+        return maxSize;
+    }
+
+    public void setMaxSize(String maxSize) {
+        this.maxSize = maxSize;
+    }
+
+    public String getHealth() {
+        return health;
+    }
+
+    public void setHealth(String health) {
+        this.health = health;
+    }
+
+    public String getDelay() {
+        return delay;
+    }
+
+    public void setDelay(String delay) {
+        this.delay = delay;
+    }
+
+    public String getPeriod() {
+        return period;
+    }
+
+    public void setPeriod(String period) {
+        this.period = period;
+    }
+
+    public String getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(String timeout) {
+        this.timeout = timeout;
+    }
+
+    public String getWaittime() {
+        return waittime;
+    }
+
+    public void setWaittime(String waittime) {
+        this.waittime = waittime;
+    }
 }
