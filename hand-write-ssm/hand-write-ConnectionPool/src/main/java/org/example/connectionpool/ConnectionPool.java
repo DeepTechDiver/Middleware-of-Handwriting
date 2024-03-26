@@ -3,6 +3,8 @@ package org.example.connectionpool;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,7 +31,7 @@ public class ConnectionPool implements IConnectionPool {
     /**
      * 声明一个线程安全的集合list集合,存储正在使用的连接
      */
-    Vector<Connection> usePools = new Vector<Connection>();
+    Vector<ConnectionEntity> usePools = new Vector<ConnectionEntity>();
 
     /**
      * 构造方法 并初始化连接池
@@ -50,8 +52,50 @@ public class ConnectionPool implements IConnectionPool {
             System.out.println("初始化连接池，连接对象:"+conn);
             freePools.add(conn);
         }
+        // 开启健康检查，防止连接超时不释放
+        if (Boolean.valueOf(dataSourceConfig.getHealth()) == true){
+            checkConnTimeOut();
+        }
     }
 
+    /**
+     * 定时检查
+     * 定时任务框架 quartz、Spring Task、xxlJob
+     */
+    private void checkConnTimeOut() {
+        Worker worker = new Worker();
+        //调度任务,延迟执行
+        new Timer().schedule(worker, Long.valueOf(dataSourceConfig.getDelay()), Long.valueOf(dataSourceConfig.getPeriod()));
+    }
+
+    class Worker extends TimerTask{
+        @Override
+        public void run() {
+            System.out.println("开始检查连接超时");
+            try {
+                //遍历正在使用的线程池
+                for (int i = 0; i < usePools.size(); i++) {
+                    ConnectionEntity connectionEntity = usePools.get(i);
+                    Long userStartTime = connectionEntity.getUserStartTime();
+                    //超时检查逻辑:  当前时间  -  创建连接时间  > 超时时间 （连接超时）
+                    if (System.currentTimeMillis() - userStartTime > Long.valueOf(dataSourceConfig.getTimeout())){
+                        Connection connection = connectionEntity.getConnection();
+                        if (isAvailable(connection)){
+                            connection.close();
+                            //从正在使用的连接集合中移除
+                            usePools.remove(i);
+                            //连接总数-1 保证原子一致性
+                            connCount.decrementAndGet();
+                            System.out.println(Thread.currentThread().getName()+"定期检查连接状态: "+connection+ "进行废弃'，当前空闲连接池数量:"+freePools.size()+"，当前正在使用的连接池数量:"+usePools.size());
+
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
     /**
      * 创建连接池
@@ -83,8 +127,10 @@ public class ConnectionPool implements IConnectionPool {
                 if (isAvailable(conn)){
                     //从空闲连接集合中移除
                     freePools.remove(conn);
+                    //记录创建连接数据库的时间戳
+                    ConnectionEntity connEntity = new ConnectionEntity(conn, System.currentTimeMillis());
                     //添加到正在使用的连接集合
-                    usePools.add(conn);
+                    usePools.add(connEntity);
                 }
                 System.out.println(Thread.currentThread().getName()+"从空闲连接池中获取连接对象:"+conn+"，当前空闲连接池数量:"+freePools.size()+"，当前正在使用的连接池数量:"+usePools.size());
             }else {
@@ -93,7 +139,8 @@ public class ConnectionPool implements IConnectionPool {
                     //创建连接
                     conn = createConn();
                     //添加到正在使用的连接集合
-                    usePools.add(conn);
+                    ConnectionEntity connEntity = new ConnectionEntity(conn, System.currentTimeMillis());
+                    usePools.add(connEntity);
                     System.out.println(Thread.currentThread().getName()+"连接池没空闲连接，新建连接:"+conn+"，当前空闲连接池数量:"+freePools.size()+"，当前正在使用的连接池数量:"+usePools.size());
                 }else {
                     //等待
