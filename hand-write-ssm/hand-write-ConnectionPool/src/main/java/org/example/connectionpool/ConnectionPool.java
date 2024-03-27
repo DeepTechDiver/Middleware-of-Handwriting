@@ -83,6 +83,7 @@ public class ConnectionPool implements IConnectionPool {
                         if (isAvailable(connection)){
                             connection.close();
                             //从正在使用的连接集合中移除
+                            //TODO 不合理
                             usePools.remove(i);
                             //连接总数-1 保证原子一致性
                             connCount.decrementAndGet();
@@ -180,12 +181,12 @@ public class ConnectionPool implements IConnectionPool {
     public synchronized void releaseConn(Connection conn) {
         if (isAvailable(conn)){
             freePools.add(conn);
-//            for (int i = 0; i < usePools.size(); i++){
-//                if (usePools.get(i).equals(conn)){
-//                    usePools.remove(i);
-//                }
-//            }
-            usePools.remove(conn);
+            for (int i = 0; i < usePools.size(); i++){
+                // Connection connection = usePools.get(i).getConnection();
+                if (usePools.get(i).getConnection().equals(conn)){
+                    usePools.remove(i);
+                }
+            }
             System.out.println(Thread.currentThread().getName()+"归还连接对象:"+conn+"，当前空闲连接池数量:"+freePools.size()+"，当前正在使用的连接池数量:"+usePools.size());
         }
         this.notify();
