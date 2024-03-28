@@ -11,6 +11,11 @@ public class DefaultSqlSession  implements  SqlSession{
 
     //封装的是配置信息
     private Configuration configuration;
+
+    public DefaultSqlSession(Configuration configuration) {
+        this.configuration = configuration;
+    }
+
     @Override
     public <E> List<E> selectList(String statementId, Object... params) throws Exception {
         return null;

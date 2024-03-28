@@ -16,11 +16,13 @@ import java.util.Properties;
  */
 public class XmlConfigBuilder {
 
+
     private Configuration configuration;
 
     public XmlConfigBuilder(Configuration configuration) {
         this.configuration = configuration;
     }
+
 
     /**
      * 解析MyBatis-config配置文件 ： 使用dom4j对配置文件进行解析，封装成Configuration对象
