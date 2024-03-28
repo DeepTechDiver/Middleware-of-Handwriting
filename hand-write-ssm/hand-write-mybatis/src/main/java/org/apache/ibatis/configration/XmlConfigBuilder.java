@@ -23,8 +23,8 @@ public class XmlConfigBuilder {
     }
 
     /**
-     * 解析MyBatis-config配置文件
-     * @return
+     * 解析MyBatis-config配置文件 ： 使用dom4j对配置文件进行解析，封装成Configuration对象
+     * @return Configuration对象
      */
     public Configuration parseMyBatisConfig(InputStream inputStream) throws DocumentException {
         SAXReader saxReader = new SAXReader();
@@ -32,7 +32,7 @@ public class XmlConfigBuilder {
         Element rootElement = document.getRootElement();
 
         //映射出xml的dataSource中的property配置
-        List<Element> propertyList = rootElement.selectNodes("property");
+        List<Element> propertyList = rootElement.selectNodes("//property");
         Properties properties = new Properties();
         for (Element element : propertyList) {
             String name = element.attributeValue("name");

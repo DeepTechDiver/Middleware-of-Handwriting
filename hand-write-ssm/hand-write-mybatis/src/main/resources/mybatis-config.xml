@@ -11,6 +11,6 @@
     </dataSource>
 
     <!--存放mapper.xml的全路径-->
-    <mapper resource="mapper/UserMapper.xml"></mapper>
+    <mapper resource="mappers/UserMapper.xml"></mapper>
 
 </configuration>
