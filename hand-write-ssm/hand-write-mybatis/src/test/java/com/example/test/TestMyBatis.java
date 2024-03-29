@@ -1,5 +1,6 @@
 package com.example.test;
 
+import com.example.dao.UserDao;
 import com.example.mapper.UserMapper;
 import com.example.pojo.User;
 import org.apache.ibatis.session.SqlSession;
@@ -20,7 +21,7 @@ public class TestMyBatis {
      *在单元测试之前执行
      */
      @Before
-     public void init() {
+     public void init() throws Exception {
          //从XML中构建SqlSessionFactory
          String resource = "mybatis-config.xml";
          InputStream inputStream = Resources.getResourceAsStream(resource);
@@ -28,13 +29,13 @@ public class TestMyBatis {
          SqlSession sqlSession = sqlSessionFactory.openSession();
          System.out.println(sqlSession);
 //         //框架底层使用JDK动态代理给接口生成实现类对象
-//         userMapper = sqlSession.getMapper(UserDao.class);
+         userMapper = sqlSession.getMapper(UserDao.class);
          System.out.println(inputStream);
      }
 
     @Test
     public void testMyBatis() {
-//        List<User> users = userMapper.list();
-//        users.forEach(System.out::println);
+        List<User> users = userMapper.list();
+        users.forEach(System.out::println);
     }
 }
