@@ -2,6 +2,8 @@ package org.apache.ibatis.session;
 
 import org.apache.ibatis.configration.CommandType;
 import org.apache.ibatis.configration.Configuration;
+import org.apache.ibatis.configration.MappedStatement;
+import org.apache.ibatis.executor.SimpleExecutor;
 
 import java.lang.reflect.*;
 import java.util.Arrays;
@@ -18,12 +20,24 @@ public class DefaultSqlSession  implements  SqlSession{
 
     @Override
     public <E> List<E> selectList(String statementId, Object... params) throws Exception {
-        return null;
+        // 将要去完成对SimpleExecutor里的query方法的调用
+        SimpleExecutor simpleExecutor = new SimpleExecutor();
+        MappedStatement mappedStatement = this.configuration.getMappedStatementMap().get(statementId);
+        List<E> query = simpleExecutor.query(configuration, mappedStatement, params);
+        if (query != null && !query.isEmpty()) {
+            return query;
+        }
+        return query;
     }
 
     @Override
     public <T> T selectOne(String statementId, Object... params) throws Exception {
-        return null;
+        List<T> list = this.selectList(statementId, params);
+        if (list.size() == 1){
+            return list.get(0);
+        }else {
+            throw  new RuntimeException("查询结果为空或者返回结果过多");
+        }
     }
 
     @Override

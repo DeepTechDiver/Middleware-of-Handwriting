@@ -3,17 +3,17 @@ package com.example.test;
 import com.example.dao.UserDao;
 import com.example.mapper.UserMapper;
 import com.example.pojo.User;
+import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.Before;
 import org.junit.Test;
-import org.apache.ibatis.io.Resources;
 
 import java.io.InputStream;
 import java.util.List;
 
-public class TestMyBatis {
+public class TestDao {
 
     UserMapper userMapper;
 
@@ -29,13 +29,13 @@ public class TestMyBatis {
          SqlSession sqlSession = sqlSessionFactory.openSession();
          System.out.println(sqlSession);
 //         //框架底层使用JDK动态代理给接口生成实现类对象
-         this.userMapper = sqlSession.getMapper(UserMapper.class);
+         userMapper = sqlSession.getMapper(UserDao.class);
          System.out.println(inputStream);
      }
 
     @Test
     public void testMyBatis() {
-        List<User> users = userMapper.list();
-        users.forEach(System.out::println);
+//        List<User> users = userMapper.list();
+//        users.forEach(System.out::println);
     }
 }
