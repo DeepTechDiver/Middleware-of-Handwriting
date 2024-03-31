@@ -57,7 +57,7 @@ public class DataSourceConfig {
     /**
      * 私有化构造方法
      */
-    private DataSourceConfig() {
+    public DataSourceConfig() {
         try {
             Properties properties = new Properties();
             properties.load(DataSourceConfig.class.getClassLoader().getResourceAsStream("db.properties"));

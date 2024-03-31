@@ -7,6 +7,8 @@ import org.apache.ibatis.configration.MappedStatement;
 import org.apache.ibatis.utils.GenericTokenParser;
 import org.apache.ibatis.utils.ParameterMapping;
 import org.apache.ibatis.utils.ParameterMappingTokenHandler;
+import org.example.connectionpool.DataSourceConfig;
+import org.example.connectionpool.DataSourceManager;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
@@ -33,7 +35,11 @@ public class SimpleExecutor implements Executor {
     public <E> List<E> query(Configuration configuration, MappedStatement mappedStatement, Object... params) throws Exception {
 
         // 1.获取数据库的连接
-        Connection connection = configuration.getDataSource().getConnection();
+
+//        Connection conn = DataSourceManager.getConn();
+//        Connection connection = configuration.getDataSource().getConnection();
+        Connection connection = DataSourceManager.getConn();
+
         System.out.println(connection);
         // 2.获取要执行的SQL语句 （select * from user where id=#{id} 解析为 select * from user where id=?）
         String sql = mappedStatement.getSql();

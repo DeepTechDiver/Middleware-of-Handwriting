@@ -6,6 +6,8 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.example.connectionpool.DataSourceConfig;
+
+import javax.sql.DataSource;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
@@ -50,6 +52,8 @@ public class XmlConfigBuilder {
         DataSourceConfig.getInstance().setUrl(properties.getProperty("url"));
         DataSourceConfig.getInstance().setUsername(properties.getProperty("username"));
         DataSourceConfig.getInstance().setPassword(properties.getProperty("password"));
+
+        configuration.setDataSource(DataSourceConfig.getInstance());
 
         //映射XxxMapper.xml文件
         List<Element> mapperlist = rootElement.selectNodes("//mapper");

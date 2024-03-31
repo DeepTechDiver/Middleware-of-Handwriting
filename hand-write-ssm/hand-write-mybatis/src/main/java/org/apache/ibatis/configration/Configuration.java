@@ -3,6 +3,7 @@ package org.apache.ibatis.configration;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.connectionpool.DataSourceConfig;
 
 import javax.sql.DataSource;
 import java.util.Map;
@@ -19,7 +20,7 @@ public class Configuration {
     /**
      * 数据源
      */
-    private DataSource dataSource;
+    private DataSourceConfig dataSource;
 
     /**
      * 封装的UserMaper.xml文件中的SQL语句，因为maper.xml文件中不止一条SQL
