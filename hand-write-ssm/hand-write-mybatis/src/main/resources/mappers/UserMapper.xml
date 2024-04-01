@@ -19,8 +19,8 @@
 
 
     <!--新增-->
-    <insert id="add" resultType="java.lang.Integer" parameterType="com.example.pojo.User">
-        insert into user values (null,#(username,password))
+    <insert id="insert" resultType="java.lang.Integer" parameterType="com.example.pojo.User">
+        insert into user values (null,#{username},#{password})
     </insert>
 
     <!--更新-->

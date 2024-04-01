@@ -7,7 +7,6 @@ import org.apache.ibatis.configration.MappedStatement;
 import org.apache.ibatis.utils.GenericTokenParser;
 import org.apache.ibatis.utils.ParameterMapping;
 import org.apache.ibatis.utils.ParameterMappingTokenHandler;
-import org.example.connectionpool.DataSourceConfig;
 import org.example.connectionpool.DataSourceManager;
 
 import java.beans.PropertyDescriptor;
@@ -16,8 +15,6 @@ import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * SQL语句执行器
  */
@@ -35,49 +32,52 @@ public class SimpleExecutor implements Executor {
     public <E> List<E> query(Configuration configuration, MappedStatement mappedStatement, Object... params) throws Exception {
 
         // 1.获取数据库的连接
-
-//        Connection connection = configuration.getDataSource().getConnection();
+        //Connection connection = configuration.getDataSource().getConnection();
         Connection connection = DataSourceManager.getConn();
-
-
-        System.out.println(connection);
         // 2.获取要执行的SQL语句 （select * from user where id=#{id} 解析为 select * from user where id=?）
         String sql = mappedStatement.getSql();
         BoundSql boundSql = getBoundSql(sql);
+        System.out.println("要执行的SQL语句是: " + boundSql.getSqlText());
         // 3.获取预处理对象：preparedStatement
         PreparedStatement preparedStatement = connection.prepareStatement(boundSql.getSqlText());
         // 4.设置参数
         String parameterType = mappedStatement.getParameterType();
-        Class<?> parameterTypeClass = this.getClassType(parameterType);
-        if (parameterTypeClass != null){
-            List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
-            for (int i = 0; i < parameterMappings.size(); i++) {
-                ParameterMapping parameterMapping = parameterMappings.get(i);
-                String content = parameterMapping.getContent();
-                //暴力反射
-                Field declaredField = parameterTypeClass.getDeclaredField(content);
-                // 暴力访问，防止访问的字段是private修饰
-                declaredField.setAccessible(true);
-                Object o = declaredField.get(params[0]);
-                preparedStatement.setObject(i+1,o);
-            }
+        Class<?> parameterTypeClass = getClassType(parameterType);
+
+        List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
+        List<String> logs = new ArrayList<>();
+        //Todo 暴力反射不支持int问题 （待解决）
+        for (int i = 0; i < parameterMappings.size(); i++) {
+            ParameterMapping parameterMapping = parameterMappings.get(i);
+            String content = parameterMapping.getContent();
+            //暴力反射
+            Field declaredField = parameterTypeClass.getDeclaredField(content);
+            // 暴力访问，防止访问的字段是private修饰
+            declaredField.setAccessible(true);
+            Object o = declaredField.get(params[0]);
+            preparedStatement.setObject(i+1,o);
+
+            logs.add(content);
         }
+        System.out.println("SQL语句中的参数包含: " + logs);
+
         // 5.执行sql
         String id = mappedStatement.getId();
         ResultSet resultSet = null;
-        //增删改
-//            if (!Arrays.asList(CommandType.sqlCommand).contains(id))
+        //增删改 执行 executeUpdate()
+        // if (!Arrays.asList(CommandType.sqlCommand).contains(id))
+        //TODO 判断不合理 （修改为使用标签判断）(√ 已修改)
         if (
-            id.contains(CommandType.DELETE.toString()) ||
-            id.contains(CommandType.UPDATE.toString()) ||
-            id.contains(CommandType.INSERT.toString())
+            "insert".equals(mappedStatement.getSqlType()) ||
+            "delete".equals(mappedStatement.getSqlType()) ||
+            "update".equals(mappedStatement.getSqlType())
         ){
             Integer count = preparedStatement.executeUpdate();
             List<Integer> counts = new ArrayList<>();
             counts.add(count);
             return (List<E>) counts;
         }else {
-            //查询
+            //查询 执行 executeQuery()
             resultSet = preparedStatement.executeQuery();
         }
 
@@ -91,7 +91,7 @@ public class SimpleExecutor implements Executor {
             //调无无参的方法生成对象
             Object o = resultTypeClass.newInstance();
             ResultSetMetaData metaData = resultSet.getMetaData();
-            for (int i = 1; i < metaData.getColumnCount(); i++) {
+            for (int i = 1; i <= metaData.getColumnCount(); i++) {
                 //获取字段名
                 String columnName = metaData.getColumnName(i);
                 // 字段的值
@@ -107,17 +107,12 @@ public class SimpleExecutor implements Executor {
         return (List<E>) objects;
     }
 
-    public Class<?> getClassType(String parameterType) {
-        try {
-            if (parameterType != null){
-                return Class.forName(parameterType);
-            }
-            return null;
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+    private Class<?> getClassType(String parameterType) throws ClassNotFoundException {
+        if (parameterType != null) {
+            return Class.forName(parameterType);
         }
+        return null;
     }
-
 
     /**
      * 完成对#{}的解析工作:

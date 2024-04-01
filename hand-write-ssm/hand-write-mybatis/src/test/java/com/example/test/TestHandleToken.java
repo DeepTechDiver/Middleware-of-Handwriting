@@ -9,7 +9,8 @@ public class TestHandleToken {
 
     @Test
     public void testHandleToken(){
-        String sql = "select * from user where id = #{id} and name = #{name}";
+//        String sql = "select * from user where id = #{id} and name = #{name}";
+        String sql = "insert into user values (null,#{username},#{password})";
         ParameterMappingTokenHandler parameterMapping = new ParameterMappingTokenHandler();
         GenericTokenParser genericTokenParser = new GenericTokenParser("#{", "}", parameterMapping);
         String parse = genericTokenParser.parse(sql);

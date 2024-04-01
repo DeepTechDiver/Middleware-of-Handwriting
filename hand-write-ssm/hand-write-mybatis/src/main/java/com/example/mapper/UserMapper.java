@@ -9,7 +9,9 @@ public interface UserMapper {
 
     User findById(Integer id);
 
-    int update(User user);
+    Integer update(User user);
 
-    int delete(Integer id);
+    Integer insert(User user);
+
+    Integer delete(Integer id);
 }

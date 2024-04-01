@@ -8,6 +8,7 @@ import org.apache.ibatis.executor.SimpleExecutor;
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class DefaultSqlSession  implements  SqlSession{
 
@@ -23,11 +24,7 @@ public class DefaultSqlSession  implements  SqlSession{
         // 将要去完成对SimpleExecutor里的query方法的调用
         SimpleExecutor simpleExecutor = new SimpleExecutor();
         MappedStatement mappedStatement = this.configuration.getMappedStatementMap().get(statementId);
-        List<E> query = simpleExecutor.query(configuration, mappedStatement, params);
-        if (query != null && !query.isEmpty()) {
-            return query;
-        }
-        return query;
+        return simpleExecutor.query(configuration, mappedStatement, params);
     }
 
     @Override
@@ -42,17 +39,28 @@ public class DefaultSqlSession  implements  SqlSession{
 
     @Override
     public <T> T insert(String statementId, Object... params) throws Exception {
-        return null;
+        SimpleExecutor simpleExecutor = new SimpleExecutor();
+        MappedStatement mappedStatement = this.configuration.getMappedStatementMap().get(statementId);
+        List<T> counts = simpleExecutor.query(configuration, mappedStatement, params);
+        if (counts.size() == 1){
+            return counts.get(0);
+        }else {
+            return (T) Integer.valueOf(0);
+        }
     }
 
     @Override
     public <T> T update(String statementId, Object... params) throws Exception {
-        return null;
+        SimpleExecutor simpleExecutor = new SimpleExecutor();
+        MappedStatement mappedStatement = this.configuration.getMappedStatementMap().get(statementId);
+        return (T) simpleExecutor.query(configuration, mappedStatement, params).get(0);
     }
 
     @Override
     public <T> T delete(String statementId, Object... params) throws Exception {
-        return null;
+        SimpleExecutor simpleExecutor = new SimpleExecutor();
+        MappedStatement mappedStatement = this.configuration.getMappedStatementMap().get(statementId);
+        return (T) simpleExecutor.query(configuration, mappedStatement, params).get(0);
     }
 
     /**
@@ -77,17 +85,31 @@ public class DefaultSqlSession  implements  SqlSession{
                 String statmentId = className + "." + methodName;
                 //获取方法被调用之后的返回类型
                 Type genericReturnType = method.getGenericReturnType();
-//                if (Arrays.asList(CommandType.INSERT).contains(methodName)){
-//                    //在JDBC中执行insert,delete,update都是在执行update
-//                    return update(methodName);
-//                }
-                if (methodName.contains(CommandType.INSERT.toString())){
+
+                Map<String, MappedStatement> mappedStatementMap = configuration.getMappedStatementMap();
+                MappedStatement mappedStatement = mappedStatementMap.get(statmentId);
+
+                /**
+                 * .contains("update")通常用于检查字符串中是否包含特定的子字符串。
+                 * "update".equals()用于检查字符串是否与给定的字符串相等。
+                 */
+                //通过xml标签来判断增删改的操作
+                if ("insert".equals(mappedStatement.getSqlType())){
                     return insert(statmentId, args);
-                }else if (methodName.contains(CommandType.DELETE.toString())){
+                }else if ("delete".equals(mappedStatement.getSqlType())){
                     return delete(statmentId, args);
-                } else if (methodName.contains(CommandType.UPDATE.toString())){
+                } else if ("update".equals(mappedStatement.getSqlType())){
                     return update(statmentId, args);
                 }
+
+                //修改方法
+//                if (methodName.contains(CommandType.insert.toString())){
+//                    return insert(statmentId, args);
+//                }else if (methodName.contains(CommandType.delete.toString())){
+//                    return delete(statmentId, args);
+//                } else if (methodName.contains(CommandType.update.toString())){
+//                    return update(statmentId, args);
+//                }
                 //判断是否是集合即是否进行泛型类型的参数化（返回结果是否为泛型 是则查询集合 ）
                 if (genericReturnType instanceof ParameterizedType){
                     List<Object> objects = selectList(statmentId, args);

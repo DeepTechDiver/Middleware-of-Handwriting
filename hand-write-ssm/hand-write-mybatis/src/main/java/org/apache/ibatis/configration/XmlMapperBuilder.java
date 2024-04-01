@@ -62,12 +62,16 @@ public class XmlMapperBuilder {
             String parameterType = element.attributeValue("parameterType");
             //获取每个mapper节点中的SQL语句
             String sqlText = element.getTextTrim();
+            //获取每一个SQL语句标签类型 {insert, update,delete,select}
+            String sqlType = element.getName();
+
             //封装对象
             MappedStatement mappedStatement = new MappedStatement();
             mappedStatement.setId(id);
             mappedStatement.setResultType(resultType);
             mappedStatement.setParameterType(parameterType);
             mappedStatement.setSql(sqlText);
+            mappedStatement.setSqlType(sqlType);
 
             // 3. 封装Configuration对象
             //key : com.example.mapper.UserMapper.list/findById/add/update/delete

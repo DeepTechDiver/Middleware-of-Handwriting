@@ -34,4 +34,9 @@ public class MappedStatement {
      */
     private String sql;
 
+    /**
+     * 封装SQL语句的参数
+     */
+    private String sqlType;
+
 }
