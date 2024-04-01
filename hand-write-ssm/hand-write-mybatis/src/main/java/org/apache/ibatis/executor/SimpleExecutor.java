@@ -36,9 +36,9 @@ public class SimpleExecutor implements Executor {
 
         // 1.获取数据库的连接
 
-//        Connection conn = DataSourceManager.getConn();
 //        Connection connection = configuration.getDataSource().getConnection();
         Connection connection = DataSourceManager.getConn();
+
 
         System.out.println(connection);
         // 2.获取要执行的SQL语句 （select * from user where id=#{id} 解析为 select * from user where id=?）

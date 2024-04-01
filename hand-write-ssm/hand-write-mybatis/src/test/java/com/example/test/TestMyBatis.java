@@ -29,7 +29,7 @@ public class TestMyBatis {
          SqlSession sqlSession = sqlSessionFactory.openSession();
          System.out.println(sqlSession);
 //         //框架底层使用JDK动态代理给接口生成实现类对象
-         this.userMapper = sqlSession.getMapper(UserMapper.class);
+         userMapper = sqlSession.getMapper(UserMapper.class);
          System.out.println(inputStream);
      }
 

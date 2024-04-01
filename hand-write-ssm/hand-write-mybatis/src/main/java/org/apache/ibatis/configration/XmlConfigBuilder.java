@@ -49,7 +49,7 @@ public class XmlConfigBuilder {
 
 
         DataSourceConfig.getInstance().setDriver(properties.getProperty("driverClass"));
-        DataSourceConfig.getInstance().setUrl(properties.getProperty("url"));
+        DataSourceConfig.getInstance().setUrl(properties.getProperty("jdbcUrl"));
         DataSourceConfig.getInstance().setUsername(properties.getProperty("username"));
         DataSourceConfig.getInstance().setPassword(properties.getProperty("password"));
 
