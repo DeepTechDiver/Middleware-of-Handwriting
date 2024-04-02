@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mapper namespace="com.example.mapper.UserMapper">
+
+    <!--
+        resultType="" 返回参数类型
+        parameterType="" 输入参数类型
+    -->
+
+    <!--查询-->
+    <select id="list" resultType="com.example.pojo.User">
+        select * from user
+    </select>
+
+    <!--查询-->
+    <select id="findById" resultType="com.example.pojo.User" parameterType="java.lang.Integer">
+        select * from user where id=#{id}
+    </select>
+
+
+    <!--新增-->
+    <insert id="insert" resultType="java.lang.Integer" parameterType="com.example.pojo.User">
+        insert into user values (null,#{username},#{password})
+    </insert>
+
+    <!--更新-->
+    <update id="update" resultType="java.lang.Integer" parameterType="com.example.pojo.User">
+        update user set username=#{username},password=#{password} where id=#{id}
+    </update>
+
+    <!--删除-->
+    <delete id="delete" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+        delete from user where id=#{id}
+    </delete>
+
+
+</mapper>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<testxml>
+    <user id="U1">
+        <id>1</id>
+        <username>zhangsan</username>
+        <password>123456</password>
+    </user>
+    <user id="U2">
+        <id>2</id>
+        <username>Jack</username>
+        <password>123456</password>
+    </user>
+</testxml>
