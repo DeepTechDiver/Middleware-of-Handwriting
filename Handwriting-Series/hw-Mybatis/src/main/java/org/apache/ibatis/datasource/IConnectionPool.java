@@ -19,4 +19,5 @@ public interface IConnectionPool {
      * @param conn
      */
     void releaseConn(Connection conn);
+
 }
