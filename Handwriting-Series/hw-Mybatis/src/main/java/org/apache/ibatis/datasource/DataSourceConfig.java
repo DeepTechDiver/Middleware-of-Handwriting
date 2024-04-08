@@ -32,7 +32,7 @@ public class DataSourceConfig {
      * volatile 关键字在这里用于保证双重检查锁定的线程安全性和正确性。
      */
 //    volatile private static DataSourceConfig instance = null;
-    private static DataSourceConfig instance = null;
+    private static volatile DataSourceConfig instance = null;
 
     /**
      * 双重检查懒汉式单例设计模式
